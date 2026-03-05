@@ -42,6 +42,7 @@ scripts/
 - **Upsert pattern**: Flight statuses use `onConflictDoUpdate` on `flight_id` PK
 - **Composite PK**: `fetch_metadata` uses (destination_code, date) composite primary key
 - **`@/*` path alias**: Maps to `./src/*`
+- **Destination timezone**: `destinations.timezone_title` stores UTC offset (e.g. `+03:00`). Include in API responses via `timezoneTitle` field for client-side time conversion. Helpers in `src/lib/time.ts`
 
 ## Production
 
@@ -53,3 +54,6 @@ See `prod.md` (gitignored) for deployment instructions. Server: `root@128.140.36
 - The fetcher seeds destinations on startup; if the Emirates API is down, it logs an error and continues with whatever is in the DB
 - SQLite DB file (`emirates.db`) is created in project root — gitignored
 - Frontend auto-refreshes every 30s via polling — no WebSocket
+- **Time storage**: `departureScheduled`/`arrivalScheduled` are full UTC ISO timestamps (e.g. `2026-03-05T10:10:00Z`). Display departure in Dubai time (UTC+4), arrival in destination local time using `destinations.timezone_title`
+- **Flight date vs departure date**: `flightDate` is the airline schedule date, which can differ from actual departure calendar date (late-night flights depart after midnight). Use the departure timestamp for display, not `flightDate`
+- **API sorting**: Sort on full ISO timestamp columns directly (e.g. `departureScheduled`), not `TIME()` extraction + separate date sort

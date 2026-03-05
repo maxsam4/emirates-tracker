@@ -65,7 +65,7 @@ function ColumnHeader({
   const isActive = sortKey ? currentSort === sortKey : false;
   return (
     <th
-      className={`group ${sortKey ? "cursor-pointer" : ""} select-none px-5 py-3.5 text-left align-middle text-[13px] font-semibold uppercase tracking-[0.06em] text-text-muted hover:text-text-secondary transition-colors ${className ?? ""}`}
+      className={`group ${sortKey ? "cursor-pointer" : ""} select-none whitespace-nowrap px-5 py-3.5 text-left align-middle text-[13px] font-semibold uppercase tracking-[0.06em] text-text-muted hover:text-text-secondary transition-colors ${className ?? ""}`}
       onClick={() => sortKey && onSort(sortKey)}
     >
       {label}
