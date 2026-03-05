@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { Flight } from "@/lib/types";
-import { parseUtcOffsetMinutes, formatTimeInOffset, DUBAI_OFFSET_MINUTES } from "@/lib/time";
+import { formatLocalTime } from "@/lib/time";
 import { StatusBadge } from "./StatusBadge";
 
 type SortKey =
@@ -74,17 +74,17 @@ function ColumnHeader({
   );
 }
 
-/** Format the departure date in Dubai local time from the UTC departure timestamp.
+/** Format the departure date from the timestamp (already Dubai local time).
  *  Falls back to flightDate if no departure timestamp available. */
 function formatDepartureDate(departureIso: string | null, flightDate: string | null): string {
   const iso = departureIso ?? flightDate;
   if (!iso) return "\u2014";
   try {
-    // Convert UTC departure to Dubai local time, then extract the date
-    const utcMs = new Date(departureIso ? iso : iso + "T00:00:00").getTime();
-    const dubaiDate = new Date(utcMs + DUBAI_OFFSET_MINUTES * 60_000);
-    const day = String(dubaiDate.getUTCDate()).padStart(2, "0");
-    const month = dubaiDate.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" });
+    // Extract date directly — timestamps are already in local time
+    const dateStr = iso.slice(0, 10);
+    const d = new Date(dateStr + "T00:00:00");
+    const day = String(d.getUTCDate()).padStart(2, "0");
+    const month = d.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" });
     return `${day} ${month}`;
   } catch {
     return flightDate ?? "\u2014";
@@ -112,8 +112,6 @@ function FlightRow({ flight, onDestinationClick }: { flight: Flight; onDestinati
     flight.departureEstimated &&
     flight.departureScheduled &&
     flight.departureEstimated !== flight.departureScheduled;
-
-  const destOffsetMinutes = parseUtcOffsetMinutes(flight.timezoneTitle);
 
   return (
     <tr className="border-b border-border-subtle transition-colors hover:bg-surface-2/40">
@@ -146,15 +144,15 @@ function FlightRow({ flight, onDestinationClick }: { flight: Flight; onDestinati
         <StatusBadge code={flight.statusCode} />
       </td>
       <td className="px-5 py-4 font-[family-name:var(--font-mono)] text-[15px] font-medium tabular-nums">
-        <span>{formatTimeInOffset(flight.departureScheduled, DUBAI_OFFSET_MINUTES)}</span>
+        <span>{formatLocalTime(flight.departureScheduled)}</span>
         {isDelayed && (
           <span className="ml-2 text-[13px] text-status-delayed">
-            {"\u2192"} {formatTimeInOffset(flight.departureEstimated, DUBAI_OFFSET_MINUTES)}
+            {"\u2192"} {formatLocalTime(flight.departureEstimated)}
           </span>
         )}
       </td>
       <td className="px-5 py-4 font-[family-name:var(--font-mono)] text-[15px] font-medium tabular-nums text-text-secondary">
-        {formatTimeInOffset(flight.arrivalScheduled, destOffsetMinutes)}
+        {formatLocalTime(flight.arrivalScheduled)}
       </td>
       <td className="hidden px-5 py-4 text-[13px] text-text-muted lg:table-cell">
         {formatRelativeTime(flight.fetchedAt)}

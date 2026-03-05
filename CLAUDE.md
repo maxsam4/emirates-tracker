@@ -56,6 +56,6 @@ See `prod.md` (gitignored) for deployment instructions and server details.
 - The fetcher seeds destinations on startup; if the Emirates API is down, it logs an error and continues with whatever is in the DB
 - SQLite DB file (`emirates.db`) is created in project root — gitignored
 - Frontend auto-refreshes every 30s via polling — no WebSocket
-- **Time storage**: `departureScheduled`/`arrivalScheduled` are full UTC ISO timestamps (e.g. `2026-03-05T10:10:00Z`). Display departure in Dubai time (UTC+4), arrival in destination local time using `destinations.timezone_title`
+- **Time storage**: Emirates API returns local times with a misleading `Z` suffix. `departureScheduled`/`departureEstimated` are Dubai local time; `arrivalScheduled`/`arrivalEstimated` are destination local time. Stored as-is. Use `formatLocalTime()` from `time.ts` to extract HH:MM — do NOT apply timezone offsets
 - **Flight date vs departure date**: `flightDate` is the airline schedule date, which can differ from actual departure calendar date (late-night flights depart after midnight). Use the departure timestamp for display, not `flightDate`
 - **API sorting**: Sort on full ISO timestamp columns directly (e.g. `departureScheduled`), not `TIME()` extraction + separate date sort

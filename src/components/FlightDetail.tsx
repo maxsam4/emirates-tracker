@@ -1,7 +1,7 @@
 "use client";
 
 import type { Flight } from "@/lib/types";
-import { parseUtcOffsetMinutes, formatTimeInOffset, DUBAI_OFFSET_MINUTES } from "@/lib/time";
+import { formatLocalTime } from "@/lib/time";
 import { StatusBadge } from "./StatusBadge";
 
 function formatDate(iso: string | null): string {
@@ -98,10 +98,10 @@ export function FlightDetail({ flight }: { flight: Flight }) {
             Departure (Dubai)
           </p>
           <p className="font-[family-name:var(--font-mono)] text-text-primary">
-            {formatTimeInOffset(flight.departureScheduled, DUBAI_OFFSET_MINUTES)}
+            {formatLocalTime(flight.departureScheduled)}
             {depDelayed && (
               <span className="ml-2 text-sm text-status-delayed">
-                {"\u2192"} {formatTimeInOffset(flight.departureEstimated, DUBAI_OFFSET_MINUTES)}
+                {"\u2192"} {formatLocalTime(flight.departureEstimated)}
               </span>
             )}
           </p>
@@ -118,10 +118,10 @@ export function FlightDetail({ flight }: { flight: Flight }) {
             Arrival (Local)
           </p>
           <p className="font-[family-name:var(--font-mono)] text-text-primary">
-            {formatTimeInOffset(flight.arrivalScheduled, parseUtcOffsetMinutes(flight.timezoneTitle))}
+            {formatLocalTime(flight.arrivalScheduled)}
             {arrDelayed && (
               <span className="ml-2 text-sm text-status-delayed">
-                {"\u2192"} {formatTimeInOffset(flight.arrivalEstimated, parseUtcOffsetMinutes(flight.timezoneTitle))}
+                {"\u2192"} {formatLocalTime(flight.arrivalEstimated)}
               </span>
             )}
           </p>
