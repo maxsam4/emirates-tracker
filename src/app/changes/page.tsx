@@ -57,9 +57,22 @@ function formatAbsoluteTime(iso: string): string {
   }
 }
 
-function formatChangedFields(fields: Array<{ field: string; old: unknown; new: unknown } | string>): string {
+function getFieldChange(fields: Array<{ field: string; old: unknown; new: unknown } | string>, fieldName: string): { old: unknown; new: unknown } | null {
+  if (!fields) return null;
+  for (const f of fields) {
+    if (typeof f !== "string" && f.field === fieldName) return f;
+  }
+  return null;
+}
+
+function formatChangedFields(fields: Array<{ field: string; old: unknown; new: unknown } | string>, exclude: string[] = []): string {
   if (!fields || fields.length === 0) return "\u2014";
-  return fields.map((f) => {
+  const filtered = fields.filter((f) => {
+    const name = typeof f === "string" ? f : f.field;
+    return !exclude.includes(name);
+  });
+  if (filtered.length === 0) return "\u2014";
+  return filtered.map((f) => {
     const name = typeof f === "string" ? f : f.field;
     return FIELD_LABELS[name] ?? name;
   }).join(", ");
@@ -167,6 +180,9 @@ export default function ChangesPage() {
                       ? `${change.airlineDesignator} ${num}`
                       : num ?? "\u2014";
 
+                    const statusChange = getFieldChange(change.changedFields, "statusCode");
+                    const destChange = getFieldChange(change.changedFields, "destinationActual");
+
                     return (
                       <tr
                         key={change.id}
@@ -191,21 +207,41 @@ export default function ChangesPage() {
                           </Link>
                         </td>
                         <td className="px-5 py-4">
-                          <div className="flex flex-col gap-0.5">
-                            <span className="font-[family-name:var(--font-display)] text-[16px] text-text-primary">
-                              {change.city ?? change.destinationCode ?? "\u2014"}
-                            </span>
-                            <span className="text-[13px] text-text-muted">
-                              {change.destinationCode}
-                              {change.country ? ` \u00b7 ${change.country}` : ""}
-                            </span>
-                          </div>
+                          {destChange ? (
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-[family-name:var(--font-display)] text-[15px] text-text-muted">
+                                {String(destChange.old || "—")}
+                              </span>
+                              <span className="text-[13px] text-text-muted">→</span>
+                              <span className="font-[family-name:var(--font-display)] text-[15px] text-text-primary font-medium">
+                                {String(destChange.new || "—")}
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col gap-0.5">
+                              <span className="font-[family-name:var(--font-display)] text-[16px] text-text-primary">
+                                {change.city ?? change.destinationCode ?? "\u2014"}
+                              </span>
+                              <span className="text-[13px] text-text-muted">
+                                {change.destinationCode}
+                                {change.country ? ` \u00b7 ${change.country}` : ""}
+                              </span>
+                            </div>
+                          )}
                         </td>
                         <td className="px-5 py-4">
-                          <StatusBadge code={change.statusCode} />
+                          {statusChange ? (
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <StatusBadge code={String(statusChange.old || "")} />
+                              <span className="text-[13px] text-text-muted">→</span>
+                              <StatusBadge code={String(statusChange.new || "")} />
+                            </div>
+                          ) : (
+                            <StatusBadge code={change.statusCode} />
+                          )}
                         </td>
                         <td className="px-5 py-4 text-[13px] text-text-muted">
-                          {formatChangedFields(change.changedFields)}
+                          {formatChangedFields(change.changedFields, ["statusCode", "destinationActual"])}
                         </td>
                       </tr>
                     );
