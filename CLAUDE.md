@@ -46,7 +46,9 @@ scripts/
 
 ## Production
 
-See `prod.md` (gitignored) for deployment instructions. Server: `root@128.140.36.174`, domain: `flydxb.xyz`.
+See `prod.md` (gitignored) for deployment instructions and server details.
+
+**Deploy**: Always use `scripts/deploy.sh` — it builds in a staging directory for minimal downtime and auto-rolls back on failure. See `prod.md` for the full command.
 
 ## Gotchas
 
