@@ -21,6 +21,7 @@ export interface Flight {
   country: string | null;
   region: string | null;
   stationLongName: string | null;
+  timezoneTitle: string | null;
   originActual?: string | null;
   originPlanned?: string | null;
   destinationActual?: string | null;

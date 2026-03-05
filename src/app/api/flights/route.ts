@@ -46,33 +46,27 @@ export async function GET(req: NextRequest) {
 
   const orderFn = sortOrder === "desc" ? desc : asc;
 
-  const depTime = sql`TIME(${flightStatuses.departureScheduled})`;
-  const arrTime = sql`TIME(${flightStatuses.arrivalScheduled})`;
+  const dep = flightStatuses.departureScheduled;
+  const arr = flightStatuses.arrivalScheduled;
 
   const orderClauses = (() => {
     switch (sortBy) {
       case "departureScheduled":
-        return date
-          ? [orderFn(depTime)]
-          : [orderFn(flightStatuses.flightDate), orderFn(depTime)];
+        return [orderFn(dep)];
       case "arrivalScheduled":
-        return date
-          ? [orderFn(arrTime)]
-          : [orderFn(flightStatuses.flightDate), orderFn(arrTime)];
+        return [orderFn(arr)];
       case "flightNumber":
-        return [orderFn(flightStatuses.flightNumber), asc(depTime)];
+        return [orderFn(flightStatuses.flightNumber), asc(dep)];
       case "destination":
-        return [orderFn(destinations.city), asc(depTime)];
+        return [orderFn(destinations.city), asc(dep)];
       case "status":
-        return [orderFn(flightStatuses.statusCode), asc(depTime)];
+        return [orderFn(flightStatuses.statusCode), asc(dep)];
       case "flightDate":
-        return [orderFn(flightStatuses.flightDate), asc(depTime)];
+        return [orderFn(flightStatuses.flightDate), asc(dep)];
       case "fetchedAt":
         return [orderFn(flightStatuses.fetchedAt)];
       default:
-        return date
-          ? [asc(depTime)]
-          : [asc(flightStatuses.flightDate), asc(depTime)];
+        return [asc(dep)];
     }
   })();
 
@@ -103,6 +97,7 @@ export async function GET(req: NextRequest) {
       country: destinations.country,
       region: destinations.region,
       stationLongName: destinations.stationLongName,
+      timezoneTitle: destinations.timezoneTitle,
     })
     .from(flightStatuses)
     .leftJoin(

@@ -43,6 +43,10 @@ scripts/
 - **Composite PK**: `fetch_metadata` uses (destination_code, date) composite primary key
 - **`@/*` path alias**: Maps to `./src/*`
 
+## Production
+
+See `prod.md` (gitignored) for deployment instructions. Server: `root@128.140.36.174`, domain: `flydxb.xyz`.
+
 ## Gotchas
 
 - `better-sqlite3` is a native module — must be in `serverExternalPackages` in next.config.ts

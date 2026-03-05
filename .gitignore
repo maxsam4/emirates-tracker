@@ -40,6 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# prod deployment docs (contains server credentials)
+prod.md
+
 # sqlite
 *.db
 *.db-wal

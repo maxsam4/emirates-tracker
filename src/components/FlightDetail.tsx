@@ -1,21 +1,8 @@
 "use client";
 
 import type { Flight } from "@/lib/types";
+import { parseUtcOffsetMinutes, formatTimeInOffset, DUBAI_OFFSET_MINUTES } from "@/lib/time";
 import { StatusBadge } from "./StatusBadge";
-
-function formatTime(iso: string | null): string {
-  if (!iso) return "\u2014";
-  try {
-    const d = new Date(iso);
-    return d.toLocaleTimeString("en-GB", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-  } catch {
-    return iso;
-  }
-}
 
 function formatDate(iso: string | null): string {
   if (!iso) return "\u2014";
@@ -108,13 +95,13 @@ export function FlightDetail({ flight }: { flight: Flight }) {
         {/* Departure */}
         <div>
           <p className="text-[11px] uppercase tracking-[0.12em] text-text-muted font-[family-name:var(--font-body)] mb-1">
-            Departure
+            Departure (Dubai)
           </p>
           <p className="font-[family-name:var(--font-mono)] text-text-primary">
-            {formatTime(flight.departureScheduled)}
+            {formatTimeInOffset(flight.departureScheduled, DUBAI_OFFSET_MINUTES)}
             {depDelayed && (
               <span className="ml-2 text-sm text-status-delayed">
-                {"\u2192"} {formatTime(flight.departureEstimated)}
+                {"\u2192"} {formatTimeInOffset(flight.departureEstimated, DUBAI_OFFSET_MINUTES)}
               </span>
             )}
           </p>
@@ -128,13 +115,13 @@ export function FlightDetail({ flight }: { flight: Flight }) {
         {/* Arrival */}
         <div>
           <p className="text-[11px] uppercase tracking-[0.12em] text-text-muted font-[family-name:var(--font-body)] mb-1">
-            Arrival
+            Arrival (Local)
           </p>
           <p className="font-[family-name:var(--font-mono)] text-text-primary">
-            {formatTime(flight.arrivalScheduled)}
+            {formatTimeInOffset(flight.arrivalScheduled, parseUtcOffsetMinutes(flight.timezoneTitle))}
             {arrDelayed && (
               <span className="ml-2 text-sm text-status-delayed">
-                {"\u2192"} {formatTime(flight.arrivalEstimated)}
+                {"\u2192"} {formatTimeInOffset(flight.arrivalEstimated, parseUtcOffsetMinutes(flight.timezoneTitle))}
               </span>
             )}
           </p>

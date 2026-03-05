@@ -55,23 +55,13 @@ export default function Home() {
       let results: Flight[] = data.flights ?? [];
 
       if (getMeOut) {
-        // Filter out flights departing less than 2 hours from now.
-        // departureScheduled is in Dubai local time (UTC+4).
-        // We compare against the current time in Dubai timezone.
-        const nowDubai = new Date(
-          new Date().toLocaleString("en-US", { timeZone: "Asia/Dubai" })
-        );
-        const cutoff = new Date(nowDubai.getTime() + 2 * 60 * 60 * 1000);
+        // departureScheduled is a real UTC ISO string (e.g. "2026-03-06T00:15:00Z").
+        // Filter to only flights departing at least 2 hours from now.
+        const cutoffMs = Date.now() + 2 * 60 * 60 * 1000;
 
         results = results.filter((f) => {
-          if (!f.departureScheduled || !f.flightDate) return false;
-          // departureScheduled is a time like "14:30" or an ISO string.
-          // Construct full datetime in Dubai local time.
-          const depStr = f.departureScheduled.includes("T")
-            ? f.departureScheduled
-            : `${f.flightDate}T${f.departureScheduled}`;
-          const dep = new Date(depStr);
-          return dep >= cutoff;
+          if (!f.departureScheduled) return false;
+          return new Date(f.departureScheduled).getTime() >= cutoffMs;
         });
       }
 

@@ -42,6 +42,7 @@ export async function GET(
       country: destinations.country,
       region: destinations.region,
       stationLongName: destinations.stationLongName,
+      timezoneTitle: destinations.timezoneTitle,
     })
     .from(flightStatuses)
     .leftJoin(
