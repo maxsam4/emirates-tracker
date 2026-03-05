@@ -55,7 +55,7 @@ export interface FlightHistoryEntry {
   flightOutageType: number | null;
   lastUpdatedApi: string | null;
   fetchedAt: string | null;
-  changedFields: string[];
+  changedFields: Array<{ field: string; old: unknown; new: unknown } | string>;
   recordedAt: string;
 }
 

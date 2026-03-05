@@ -90,14 +90,7 @@ export function FlightTimeline({ history, current }: FlightTimelineProps) {
       <div className="absolute left-[7px] top-2 bottom-2 w-px bg-amber-dim" />
 
       <div className="space-y-6">
-        {history.map((entry, index) => {
-          // Next snapshot is the following history entry, or current flight state
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const next: Record<string, unknown> =
-            index < history.length - 1
-              ? (history[index + 1] as any)
-              : (current as any);
-
+        {history.map((entry) => {
           return (
             <div key={entry.id} className="relative">
               {/* Dot */}
@@ -108,16 +101,24 @@ export function FlightTimeline({ history, current }: FlightTimelineProps) {
                   {formatTimestamp(entry.recordedAt)}
                 </p>
                 <div className="space-y-1">
-                  {entry.changedFields.map((field) => (
-                    <FieldChange
-                      key={field}
-                      field={field}
-                      oldValue={
-                        (entry as unknown as Record<string, unknown>)[field]
-                      }
-                      newValue={next[field]}
-                    />
-                  ))}
+                  {entry.changedFields.map((change) => {
+                    // Support both new format {field, old, new} and legacy string[]
+                    const field = typeof change === "string" ? change : change.field;
+                    const oldValue = typeof change === "string"
+                      ? (entry as unknown as Record<string, unknown>)[field]
+                      : change.old;
+                    const newValue = typeof change === "string"
+                      ? (current as unknown as Record<string, unknown>)[field]
+                      : change.new;
+                    return (
+                      <FieldChange
+                        key={field}
+                        field={field}
+                        oldValue={oldValue}
+                        newValue={newValue}
+                      />
+                    );
+                  })}
                 </div>
               </div>
             </div>

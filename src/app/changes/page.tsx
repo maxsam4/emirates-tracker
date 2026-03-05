@@ -15,7 +15,7 @@ interface Change {
   destinationCode: string | null;
   statusCode: string | null;
   isIrregular: boolean | null;
-  changedFields: string[];
+  changedFields: Array<{ field: string; old: unknown; new: unknown } | string>;
   recordedAt: string;
   departureScheduled: string | null;
   arrivalScheduled: string | null;
@@ -57,9 +57,12 @@ function formatAbsoluteTime(iso: string): string {
   }
 }
 
-function formatChangedFields(fields: string[]): string {
+function formatChangedFields(fields: Array<{ field: string; old: unknown; new: unknown } | string>): string {
   if (!fields || fields.length === 0) return "\u2014";
-  return fields.map((f) => FIELD_LABELS[f] ?? f).join(", ");
+  return fields.map((f) => {
+    const name = typeof f === "string" ? f : f.field;
+    return FIELD_LABELS[name] ?? name;
+  }).join(", ");
 }
 
 export default function ChangesPage() {

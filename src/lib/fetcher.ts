@@ -163,41 +163,18 @@ async function fetchFlightsForDestination(
           .get();
 
         if (existing) {
-          const changedFields: string[] = [];
+          const changedFields: Array<{ field: string; old: unknown; new: unknown }> = [];
           for (const field of TRACKED_FIELDS) {
-            const oldVal = String((existing as Record<string, unknown>)[field] ?? "");
-            const newVal = String((values as Record<string, unknown>)[field] ?? "");
-            if (oldVal !== newVal) {
-              changedFields.push(field);
+            const oldVal = (existing as Record<string, unknown>)[field] ?? null;
+            const newVal = (values as Record<string, unknown>)[field] ?? null;
+            if (String(oldVal ?? "") !== String(newVal ?? "")) {
+              changedFields.push({ field, old: oldVal, new: newVal });
             }
           }
           if (changedFields.length > 0) {
             db.insert(flightStatusHistory)
               .values({
-                flightId: existing.flightId,
-                airlineDesignator: existing.airlineDesignator,
-                flightNumber: existing.flightNumber,
-                flightDate: existing.flightDate,
-                destinationCode: existing.destinationCode,
-                legNumber: existing.legNumber,
-                originActual: existing.originActual,
-                destinationActual: existing.destinationActual,
-                originPlanned: existing.originPlanned,
-                destinationPlanned: existing.destinationPlanned,
-                statusCode: existing.statusCode,
-                flightPosition: existing.flightPosition,
-                totalTravelDuration: existing.totalTravelDuration,
-                travelDurationLeft: existing.travelDurationLeft,
-                isIrregular: existing.isIrregular,
-                departureScheduled: existing.departureScheduled,
-                departureEstimated: existing.departureEstimated,
-                arrivalScheduled: existing.arrivalScheduled,
-                arrivalEstimated: existing.arrivalEstimated,
-                departureTerminal: existing.departureTerminal,
-                arrivalTerminal: existing.arrivalTerminal,
-                flightOutageType: existing.flightOutageType,
-                lastUpdatedApi: existing.lastUpdatedApi,
-                fetchedAt: existing.fetchedAt,
+                ...values,
                 changedFields: JSON.stringify(changedFields),
                 recordedAt: now,
               })
