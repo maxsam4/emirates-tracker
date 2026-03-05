@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { flightStatusHistory, destinations } from "@/db/schema";
-import { eq, or, inArray, desc, sql } from "drizzle-orm";
+import { eq, or, like, inArray, desc, sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -20,9 +20,16 @@ export async function GET(req: NextRequest) {
 
   const db = getDb();
 
+  // Match entries where the new status is abnormal (cancellations, diversions, etc.)
+  // OR where the old status was abnormal (un-cancellations, recovery from diversions)
+  const previouslyAbnormal = ABNORMAL_STATUS_CODES.map(
+    code => like(flightStatusHistory.changedFields, `%"field":"statusCode","old":"${code}"%`)
+  );
+
   const whereClause = or(
     inArray(flightStatusHistory.statusCode, ABNORMAL_STATUS_CODES),
     eq(flightStatusHistory.isIrregular, true),
+    ...previouslyAbnormal,
   );
 
   const [countResult] = db

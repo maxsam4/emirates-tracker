@@ -90,7 +90,13 @@ export function FlightTimeline({ history, current }: FlightTimelineProps) {
       <div className="absolute left-[7px] top-2 bottom-2 w-px bg-amber-dim" />
 
       <div className="space-y-6">
-        {history.map((entry) => {
+        {history.map((entry, index) => {
+          // For legacy string[] entries, the next snapshot provides new values
+          const legacyNext: Record<string, unknown> =
+            index < history.length - 1
+              ? (history[index + 1] as unknown as Record<string, unknown>)
+              : (current as unknown as Record<string, unknown>);
+
           return (
             <div key={entry.id} className="relative">
               {/* Dot */}
@@ -102,20 +108,22 @@ export function FlightTimeline({ history, current }: FlightTimelineProps) {
                 </p>
                 <div className="space-y-1">
                   {entry.changedFields.map((change) => {
-                    // Support both new format {field, old, new} and legacy string[]
-                    const field = typeof change === "string" ? change : change.field;
-                    const oldValue = typeof change === "string"
-                      ? (entry as unknown as Record<string, unknown>)[field]
-                      : change.old;
-                    const newValue = typeof change === "string"
-                      ? (current as unknown as Record<string, unknown>)[field]
-                      : change.new;
+                    if (typeof change === "string") {
+                      return (
+                        <FieldChange
+                          key={change}
+                          field={change}
+                          oldValue={(entry as unknown as Record<string, unknown>)[change]}
+                          newValue={legacyNext[change]}
+                        />
+                      );
+                    }
                     return (
                       <FieldChange
-                        key={field}
-                        field={field}
-                        oldValue={oldValue}
-                        newValue={newValue}
+                        key={change.field}
+                        field={change.field}
+                        oldValue={change.old}
+                        newValue={change.new}
                       />
                     );
                   })}
