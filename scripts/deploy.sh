@@ -94,16 +94,14 @@ npm install --no-audit --no-fund
 echo "==> Preparing staging directory..."
 rm -rf "$STAGE_DIR"
 
+# Copy source + node_modules (no symlink — Turbopack rejects symlinked node_modules)
 rsync -a \
     --exclude='.next' \
     --exclude='.git' \
-    --exclude='node_modules' \
     --exclude='emirates.db' \
     --exclude='emirates.db-wal' \
     --exclude='emirates.db-shm' \
     "$APP_DIR/" "$STAGE_DIR/"
-
-ln -s "$APP_DIR/node_modules" "$STAGE_DIR/node_modules"
 
 echo "==> Building in staging directory..."
 cd "$STAGE_DIR"
