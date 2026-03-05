@@ -5,7 +5,7 @@ import {
   flightStatusHistory,
   fetchMetadata,
 } from "@/db/schema";
-import { eq, and, sql, inArray } from "drizzle-orm";
+import { eq, and, sql, inArray, notInArray } from "drizzle-orm";
 import { seedDestinations } from "./destinations";
 import { curlFetchJson } from "./curl-fetch";
 
@@ -187,6 +187,33 @@ async function fetchFlightsForDestination(
           target: flightStatuses.flightId,
           set: { ...values },
         })
+        .run();
+    }
+
+    // Remove stale flights no longer returned by the API for this destination+date
+    const returnedIds = results
+      .map((f) => f.flightId)
+      .filter((id): id is string => !!id);
+
+    if (returnedIds.length > 0) {
+      db.delete(flightStatuses)
+        .where(
+          and(
+            eq(flightStatuses.destinationCode, destCode),
+            eq(flightStatuses.flightDate, date),
+            notInArray(flightStatuses.flightId, returnedIds)
+          )
+        )
+        .run();
+    } else {
+      // API returned no flights — remove all for this destination+date
+      db.delete(flightStatuses)
+        .where(
+          and(
+            eq(flightStatuses.destinationCode, destCode),
+            eq(flightStatuses.flightDate, date)
+          )
+        )
         .run();
     }
 
