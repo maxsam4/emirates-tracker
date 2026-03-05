@@ -90,6 +90,7 @@ export default function Home() {
 
 
   const handleSort = (key: SortKey) => {
+    setGetMeOut(false);
     if (sortBy === key) {
       setSortOrder((o) => (o === "asc" ? "desc" : "asc"));
     } else {
@@ -103,6 +104,11 @@ export default function Home() {
     const t = now.toISOString().split("T")[0];
     const tmrw = new Date(now.getTime() + 86400000).toISOString().split("T")[0];
     return { today: t, tomorrow: tmrw };
+  }, []);
+
+  const exitGetMeOut = useCallback(<T,>(setter: (v: T) => void) => (v: T) => {
+    setGetMeOut(false);
+    setter(v);
   }, []);
 
   const destinations = stats?.destinations ?? [];
@@ -123,19 +129,19 @@ export default function Home() {
         <section className="animate-fade-in-up stagger-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <FilterPanel
             date={date}
-            onDateChange={setDate}
+            onDateChange={exitGetMeOut(setDate)}
             status={status}
-            onStatusChange={setStatus}
+            onStatusChange={exitGetMeOut(setStatus)}
             destination={destination}
-            onDestinationChange={setDestination}
+            onDestinationChange={exitGetMeOut(setDestination)}
             country={country}
-            onCountryChange={setCountry}
+            onCountryChange={exitGetMeOut(setCountry)}
             destinations={destinations}
             countries={countries}
             dates={[today, tomorrow]}
           />
           <div className="w-full sm:w-64">
-            <SearchBar value={search} onChange={setSearch} />
+            <SearchBar value={search} onChange={exitGetMeOut(setSearch)} />
           </div>
         </section>
 
@@ -166,7 +172,7 @@ export default function Home() {
             sortOrder={sortOrder}
             onSort={handleSort}
             loading={loading}
-            onDestinationClick={setDestination}
+            onDestinationClick={exitGetMeOut(setDestination)}
           />
         </section>
       </main>
