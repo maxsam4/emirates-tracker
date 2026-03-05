@@ -130,6 +130,15 @@ function initializeDb() {
     CREATE INDEX IF NOT EXISTS idx_flight_status_history_recorded_at ON flight_status_history(recorded_at)
   `);
 
+  // One-time cleanup: remove old per-leg records (e.g. EK123_1, EK123_2)
+  // They will be re-fetched as merged single records on next fetcher cycle
+  db.run(/* sql */ `
+    DELETE FROM flight_status_history WHERE flight_id LIKE '%\_%' ESCAPE '\'
+  `);
+  db.run(/* sql */ `
+    DELETE FROM flight_statuses WHERE flight_id LIKE '%\_%' ESCAPE '\'
+  `);
+
   db.run(/* sql */ `
     CREATE INDEX IF NOT EXISTS idx_flight_statuses_date ON flight_statuses(flight_date)
   `);
