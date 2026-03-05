@@ -1,6 +1,7 @@
 import { getDb } from "@/db";
 import { destinations } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { curlFetchJson } from "./curl-fetch";
 
 const STATIONS_URL =
   "https://www.emirates.com/service/hmp/stations/content?siteLocale=en-GB&emiratesOperated=true";
@@ -31,11 +32,7 @@ interface StationResponse {
 }
 
 export async function fetchStationsFromApi(): Promise<Station[]> {
-  const res = await fetch(STATIONS_URL);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch stations: ${res.status} ${res.statusText}`);
-  }
-  const data: StationResponse = await res.json();
+  const data: StationResponse = await curlFetchJson(STATIONS_URL);
   return data.stations ?? [];
 }
 

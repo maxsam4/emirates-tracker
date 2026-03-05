@@ -7,6 +7,7 @@ import {
 } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { seedDestinations } from "./destinations";
+import { curlFetchJson } from "./curl-fetch";
 
 const FETCH_DELAY_MS = parseInt(process.env.FETCH_DELAY_MS ?? "2000", 10);
 const FETCH_TIMEOUT_MS = parseInt(process.env.FETCH_TIMEOUT_MS ?? "10000", 10);
@@ -87,30 +88,14 @@ function getDateStrings(): string[] {
   ];
 }
 
-async function fetchWithTimeout(
-  url: string,
-  timeoutMs: number
-): Promise<Response> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch(url, { signal: controller.signal });
-    return res;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-async function fetchWithRetry(
+async function fetchJsonWithRetry(
   url: string,
   retries: number
-): Promise<Response> {
+): Promise<FlightStatusResponse> {
   let lastError: Error | null = null;
   for (let i = 0; i <= retries; i++) {
     try {
-      const res = await fetchWithTimeout(url, FETCH_TIMEOUT_MS);
-      if (res.ok) return res;
-      lastError = new Error(`HTTP ${res.status}`);
+      return await curlFetchJson(url, FETCH_TIMEOUT_MS);
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err));
     }
@@ -130,8 +115,7 @@ async function fetchFlightsForDestination(
   const now = new Date().toISOString();
 
   try {
-    const res = await fetchWithRetry(url, FETCH_RETRY_COUNT);
-    const data: FlightStatusResponse = await res.json();
+    const data = await fetchJsonWithRetry(url, FETCH_RETRY_COUNT);
     const results = data.results ?? [];
 
     for (const flight of results) {
