@@ -80,12 +80,11 @@ function formatDepartureDate(departureIso: string | null, flightDate: string | n
   const iso = departureIso ?? flightDate;
   if (!iso) return "\u2014";
   try {
-    // Extract date directly — timestamps are already in local time
-    const dateStr = iso.slice(0, 10);
-    const d = new Date(dateStr + "T00:00:00");
-    const day = String(d.getUTCDate()).padStart(2, "0");
-    const month = d.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" });
-    return `${day} ${month}`;
+    // Extract date directly from the string — no Date parsing needed
+    const dateStr = iso.slice(0, 10); // "2026-03-05"
+    const [, mm, dd] = dateStr.split("-");
+    const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return `${dd} ${monthNames[parseInt(mm, 10) - 1]}`;
   } catch {
     return flightDate ?? "\u2014";
   }

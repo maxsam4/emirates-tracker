@@ -53,13 +53,15 @@ export default function Home() {
       let results: Flight[] = data.flights ?? [];
 
       if (getMeOut) {
-        // departureScheduled is a real UTC ISO string (e.g. "2026-03-06T00:15:00Z").
-        // Filter to only flights departing at least 2 hours from now.
+        // departureScheduled is Dubai local time with a misleading 'Z' suffix.
+        // Subtract 4h to get real UTC before comparing to Date.now().
+        const dubaiOffsetMs = 4 * 60 * 60 * 1000;
         const cutoffMs = Date.now() + 2 * 60 * 60 * 1000;
 
         results = results.filter((f) => {
           if (!f.departureScheduled) return false;
-          return new Date(f.departureScheduled).getTime() >= cutoffMs;
+          const realUtcMs = new Date(f.departureScheduled).getTime() - dubaiOffsetMs;
+          return realUtcMs >= cutoffMs;
         });
       }
 
