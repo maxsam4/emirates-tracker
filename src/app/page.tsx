@@ -30,7 +30,7 @@ export default function Home() {
   const [country, setCountry] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("departureScheduled");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [getMeOut, setGetMeOut] = useState(false);
+  const [getMeOut, setGetMeOut] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined);
 
   const fetchFlights = useCallback(async () => {
