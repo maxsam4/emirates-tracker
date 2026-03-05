@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import type { Flight, Stats } from "@/lib/types";
 import { NavBar } from "@/components/NavBar";
 import { StatsBar } from "@/components/StatsBar";
@@ -17,7 +17,6 @@ type SortKey =
   | "flightDate"
   | "fetchedAt";
 
-const REFRESH_INTERVAL = 30_000;
 
 export default function Home() {
   const [flights, setFlights] = useState<Flight[]>([]);
@@ -31,7 +30,6 @@ export default function Home() {
   const [sortBy, setSortBy] = useState<SortKey>("departureScheduled");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [getMeOut, setGetMeOut] = useState(true);
-  const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined);
 
   const fetchFlights = useCallback(async () => {
     const params = new URLSearchParams();
@@ -90,13 +88,6 @@ export default function Home() {
     load();
   }, [fetchFlights, fetchStats]);
 
-  useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      fetchFlights();
-      fetchStats();
-    }, REFRESH_INTERVAL);
-    return () => clearInterval(intervalRef.current);
-  }, [fetchFlights, fetchStats]);
 
   const handleSort = (key: SortKey) => {
     if (sortBy === key) {

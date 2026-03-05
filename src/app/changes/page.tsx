@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { NavBar } from "@/components/NavBar";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -30,7 +30,6 @@ interface ChangesResponse {
   limit: number;
 }
 
-const REFRESH_INTERVAL = 30_000;
 const PAGE_SIZE = 50;
 
 function formatRelativeTime(iso: string): string {
@@ -67,7 +66,6 @@ export default function ChangesPage() {
   const [data, setData] = useState<ChangesResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined);
 
   const fetchChanges = useCallback(async (p: number, showLoading: boolean) => {
     if (showLoading) setLoading(true);
@@ -86,12 +84,6 @@ export default function ChangesPage() {
     fetchChanges(page, true);
   }, [fetchChanges, page]);
 
-  useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      fetchChanges(page, false);
-    }, REFRESH_INTERVAL);
-    return () => clearInterval(intervalRef.current);
-  }, [fetchChanges, page]);
 
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
 
