@@ -277,8 +277,8 @@ export async function startFetcher() {
       const aTime = oldestMap.get(a.stationCode);
       const bTime = oldestMap.get(b.stationCode);
       if (!aTime && !bTime) return 0;
-      if (!aTime) return -1;
-      if (!bTime) return 1;
+      if (!aTime) return 1;
+      if (!bTime) return -1;
       return aTime < bTime ? -1 : aTime > bTime ? 1 : 0;
     });
 
