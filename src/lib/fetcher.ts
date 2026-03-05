@@ -125,17 +125,7 @@ async function fetchFlightsForDestination(
       const legs = flight.flightRoute ?? [];
       if (legs.length === 0) continue;
 
-      const firstLeg = legs[0];
-      const lastLeg = legs[legs.length - 1];
-
-      // Pick latest lastUpdated across all legs
-      let latestUpdated: string | null = null;
-      for (const leg of legs) {
-        const ts = leg.operationalUpdate?.lastUpdated ?? null;
-        if (ts && (!latestUpdated || ts > latestUpdated)) {
-          latestUpdated = ts;
-        }
-      }
+      const leg = legs[0];
 
       const values = {
         flightId,
@@ -144,23 +134,23 @@ async function fetchFlightsForDestination(
         flightDate: flight.flightDate ?? date,
         destinationCode: destCode,
         legNumber: legs.length > 1 ? String(legs.length) : null,
-        originActual: firstLeg.originActualAirportCode ?? null,
-        destinationActual: lastLeg.destinationActualAirportCode ?? null,
-        originPlanned: firstLeg.originPlannedAirportCode ?? null,
-        destinationPlanned: lastLeg.destinationPlannedAirportCode ?? null,
-        statusCode: firstLeg.statusCode ?? null,
-        flightPosition: firstLeg.flightPosition ?? null,
-        totalTravelDuration: lastLeg.totalTravelDuration ?? null,
-        travelDurationLeft: lastLeg.travelDurationLeft ?? null,
-        isIrregular: firstLeg.isIrregular === "true",
-        departureScheduled: firstLeg.departureTime?.schedule ?? null,
-        departureEstimated: firstLeg.departureTime?.estimated ?? firstLeg.departureTime?.actual ?? null,
-        arrivalScheduled: lastLeg.arrivalTime?.schedule ?? null,
-        arrivalEstimated: lastLeg.arrivalTime?.estimated ?? null,
-        departureTerminal: firstLeg.departureTerminal ?? null,
-        arrivalTerminal: lastLeg.arrivalTerminal ?? null,
-        flightOutageType: firstLeg.flightOutageType ?? null,
-        lastUpdatedApi: latestUpdated,
+        originActual: leg.originActualAirportCode ?? null,
+        destinationActual: leg.destinationActualAirportCode ?? null,
+        originPlanned: leg.originPlannedAirportCode ?? null,
+        destinationPlanned: leg.destinationPlannedAirportCode ?? null,
+        statusCode: leg.statusCode ?? null,
+        flightPosition: leg.flightPosition ?? null,
+        totalTravelDuration: leg.totalTravelDuration ?? null,
+        travelDurationLeft: leg.travelDurationLeft ?? null,
+        isIrregular: leg.isIrregular === "true",
+        departureScheduled: leg.departureTime?.schedule ?? null,
+        departureEstimated: leg.departureTime?.estimated ?? leg.departureTime?.actual ?? null,
+        arrivalScheduled: leg.arrivalTime?.schedule ?? null,
+        arrivalEstimated: leg.arrivalTime?.estimated ?? null,
+        departureTerminal: leg.departureTerminal ?? null,
+        arrivalTerminal: leg.arrivalTerminal ?? null,
+        flightOutageType: leg.flightOutageType ?? null,
+        lastUpdatedApi: leg.operationalUpdate?.lastUpdated ?? null,
         fetchedAt: now,
       };
 
