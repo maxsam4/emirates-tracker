@@ -9,6 +9,12 @@
 #
 set -euo pipefail
 
+# Ensure rsync is available
+if ! command -v rsync &>/dev/null; then
+    echo "==> Installing rsync..."
+    apt-get update -qq && apt-get install -y -qq rsync
+fi
+
 APP_DIR="/root/emirates-status"
 STAGE_DIR="/root/emirates-status-stage"
 SERVICE="emirates-status"
