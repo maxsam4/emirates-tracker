@@ -28,6 +28,7 @@ interface ChangesResponse {
   total: number;
   page: number;
   limit: number;
+  destinationMap?: Record<string, string>;
 }
 
 const PAGE_SIZE = 50;
@@ -182,6 +183,12 @@ export default function ChangesPage() {
 
                     const statusChange = getFieldChange(change.changedFields, "statusCode");
                     const destChange = getFieldChange(change.changedFields, "destinationActual");
+                    const destMap = data.destinationMap ?? {};
+                    const fmtDest = (code: unknown) => {
+                      const c = String(code || "");
+                      const city = destMap[c];
+                      return city ? `${city} (${c})` : c || "—";
+                    };
 
                     return (
                       <tr
@@ -208,13 +215,13 @@ export default function ChangesPage() {
                         </td>
                         <td className="px-5 py-4">
                           {destChange ? (
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-1.5 flex-wrap">
                               <span className="font-[family-name:var(--font-display)] text-[15px] text-text-muted">
-                                {String(destChange.old || "—")}
+                                {fmtDest(destChange.old)}
                               </span>
                               <span className="text-[13px] text-text-muted">→</span>
                               <span className="font-[family-name:var(--font-display)] text-[15px] text-text-primary font-medium">
-                                {String(destChange.new || "—")}
+                                {fmtDest(destChange.new)}
                               </span>
                             </div>
                           ) : (

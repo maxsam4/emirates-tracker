@@ -73,5 +73,15 @@ export async function GET(req: NextRequest) {
     changedFields: row.changedFields ? JSON.parse(row.changedFields as unknown as string) : [],
   }));
 
-  return NextResponse.json({ changes, total, page, limit });
+  // Build a lookup map of airport code → city name for destination transitions
+  const allDests = db
+    .select({ code: destinations.stationCode, city: destinations.city })
+    .from(destinations)
+    .all();
+  const destinationMap: Record<string, string> = {};
+  for (const d of allDests) {
+    if (d.city) destinationMap[d.code] = d.city;
+  }
+
+  return NextResponse.json({ changes, total, page, limit, destinationMap });
 }
