@@ -5,6 +5,7 @@ import Link from "next/link";
 import { NavBar } from "@/components/NavBar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { FIELD_LABELS } from "@/lib/types";
+import { formatLocalTime } from "@/lib/time";
 
 interface Change {
   id: number;
@@ -166,7 +167,10 @@ export default function ChangesPage() {
                     <th className="px-5 py-3.5 text-left text-[13px] font-semibold uppercase tracking-[0.06em] text-text-muted">
                       Destination
                     </th>
-                    <th className="px-5 py-3.5 text-left text-[13px] font-semibold uppercase tracking-[0.06em] text-text-muted w-[170px]">
+                    <th className="px-5 py-3.5 text-left text-[13px] font-semibold uppercase tracking-[0.06em] text-text-muted whitespace-nowrap">
+                      Departure
+                    </th>
+                    <th className="px-5 py-3.5 text-left text-[13px] font-semibold uppercase tracking-[0.06em] text-text-muted whitespace-nowrap">
                       Status
                     </th>
                     <th className="px-5 py-3.5 text-left text-[13px] font-semibold uppercase tracking-[0.06em] text-text-muted">
@@ -182,6 +186,9 @@ export default function ChangesPage() {
                       : num ?? "\u2014";
 
                     const statusChange = getFieldChange(change.changedFields, "statusCode");
+                    const depSchChange = getFieldChange(change.changedFields, "departureScheduled");
+                    const depEstChange = getFieldChange(change.changedFields, "departureEstimated");
+                    const depChange = depEstChange ?? depSchChange;
                     const destChange = getFieldChange(change.changedFields, "destinationActual");
                     const destMap = data.destinationMap ?? {};
                     const fmtDest = (code: unknown) => {
@@ -236,9 +243,20 @@ export default function ChangesPage() {
                             </div>
                           )}
                         </td>
-                        <td className="px-5 py-4">
+                        <td className="px-5 py-4 text-[14px] whitespace-nowrap">
+                          {depChange ? (
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-text-muted">{formatLocalTime(String(depChange.old || ""))}</span>
+                              <span className="text-[13px] text-text-muted">→</span>
+                              <span className="text-text-secondary">{formatLocalTime(String(depChange.new || ""))}</span>
+                            </div>
+                          ) : (
+                            <span className="text-text-secondary">{formatLocalTime(change.departureScheduled)}</span>
+                          )}
+                        </td>
+                        <td className="px-5 py-4 whitespace-nowrap">
                           {statusChange ? (
-                            <div className="flex items-center gap-1.5 flex-wrap">
+                            <div className="flex items-center gap-1.5">
                               <StatusBadge code={String(statusChange.old || "")} />
                               <span className="text-[13px] text-text-muted">→</span>
                               <StatusBadge code={String(statusChange.new || "")} />
@@ -248,7 +266,7 @@ export default function ChangesPage() {
                           )}
                         </td>
                         <td className="px-5 py-4 text-[13px] text-text-muted">
-                          {formatChangedFields(change.changedFields, ["statusCode", "destinationActual"])}
+                          {formatChangedFields(change.changedFields, ["statusCode", "destinationActual", "departureScheduled", "departureEstimated"])}
                         </td>
                       </tr>
                     );
