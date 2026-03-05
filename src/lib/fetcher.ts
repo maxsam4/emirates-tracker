@@ -5,7 +5,7 @@ import {
   flightStatusHistory,
   fetchMetadata,
 } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql, inArray } from "drizzle-orm";
 import { seedDestinations } from "./destinations";
 import { curlFetchJson } from "./curl-fetch";
 
@@ -257,6 +257,30 @@ export async function startFetcher() {
       .all();
 
     const dates = getDateStrings();
+
+    // Order destinations: never-fetched first, then oldest data first
+    const metaRows = db
+      .select({
+        destinationCode: fetchMetadata.destinationCode,
+        oldestFetch: sql<string>`MIN(${fetchMetadata.lastFetchedAt})`,
+      })
+      .from(fetchMetadata)
+      .where(inArray(fetchMetadata.date, dates))
+      .groupBy(fetchMetadata.destinationCode)
+      .all();
+
+    const oldestMap = new Map(
+      metaRows.map((r) => [r.destinationCode, r.oldestFetch])
+    );
+
+    dests.sort((a, b) => {
+      const aTime = oldestMap.get(a.stationCode);
+      const bTime = oldestMap.get(b.stationCode);
+      if (!aTime && !bTime) return 0;
+      if (!aTime) return -1;
+      if (!bTime) return 1;
+      return aTime < bTime ? -1 : aTime > bTime ? 1 : 0;
+    });
 
     if (dests.length === 0) {
       console.log("[fetcher] No destinations found, waiting 30s before retry...");
