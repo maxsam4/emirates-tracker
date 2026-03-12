@@ -74,7 +74,7 @@ export function FlightDetail({ flight }: { flight: Flight }) {
             <p className="text-xs text-text-muted">{flight.country}</p>
           )}
           <a
-            href={`https://www.google.com/travel/flights?q=flights+from+DXB+to+${flight.destinationCode ?? ""}+on+${(flight.departureScheduled?.slice(0, 10)) ?? flight.flightDate ?? ""}+one+way`}
+            href={`https://www.google.com/travel/flights?q=flights+from+${flight.originPlanned ?? flight.originActual ?? "DXB"}+to+${flight.destinationCode ?? ""}+on+${(flight.departureScheduled?.slice(0, 10)) ?? flight.flightDate ?? ""}+one+way`}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-2 inline-flex items-center gap-1 text-xs text-text-muted hover:text-amber transition-colors"

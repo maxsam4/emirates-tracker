@@ -74,10 +74,10 @@ function ColumnHeader({
   );
 }
 
-function buildGoogleFlightsUrl(destinationCode: string | null, departureScheduled: string | null, flightDate: string | null): string {
+function buildGoogleFlightsUrl(originCode: string, destinationCode: string | null, departureScheduled: string | null, flightDate: string | null): string {
   const dest = destinationCode ?? "";
   const date = (departureScheduled?.slice(0, 10)) ?? flightDate ?? "";
-  return `https://www.google.com/travel/flights?q=flights+from+DXB+to+${dest}+on+${date}+one+way`;
+  return `https://www.google.com/travel/flights?q=flights+from+${originCode}+to+${dest}+on+${date}+one+way`;
 }
 
 /** Format the departure date from the timestamp (already Dubai local time).
@@ -161,7 +161,7 @@ function FlightRow({ flight, onDestinationClick }: { flight: Flight; onDestinati
       </td>
       <td className="px-5 py-4 text-center">
         <a
-          href={buildGoogleFlightsUrl(flight.destinationCode, flight.departureScheduled, flight.flightDate)}
+          href={buildGoogleFlightsUrl(flight.originPlanned ?? flight.originActual ?? "DXB", flight.destinationCode, flight.departureScheduled, flight.flightDate)}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 text-[13px] text-text-muted hover:text-amber transition-colors"
