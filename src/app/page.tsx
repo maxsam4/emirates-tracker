@@ -121,10 +121,16 @@ export default function Home() {
       // Re-sort the merged list when Etihad flights are included
       if (filteredEtihad.length > 0 && !destination && !country) {
         const dir = getMeOut ? 1 : (sortOrder === "desc" ? -1 : 1);
-        const key = getMeOut ? "departureScheduled" : sortBy;
+        const sortKey = getMeOut ? "departureScheduled" : sortBy;
+        // Map table sort keys to actual Flight property names
+        const sortKeyMap: Record<string, keyof Flight> = {
+          destination: "city",
+          status: "statusCode",
+        };
+        const prop = sortKeyMap[sortKey] ?? sortKey as keyof Flight;
         results.sort((a, b) => {
-          const aVal = (a as unknown as Record<string, unknown>)[key] ?? "";
-          const bVal = (b as unknown as Record<string, unknown>)[key] ?? "";
+          const aVal = a[prop] ?? "";
+          const bVal = b[prop] ?? "";
           if (aVal < bVal) return -dir;
           if (aVal > bVal) return dir;
           return 0;
