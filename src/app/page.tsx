@@ -25,6 +25,7 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [date, setDate] = useState("");
   const [status, setStatus] = useState("");
+  const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
   const [country, setCountry] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("departureScheduled");
@@ -71,6 +72,7 @@ export default function Home() {
         direction: string;
         city_name: string;
         scheduled_time: string;
+        status: string;
         fetched_at: string;
       }) => ({
         flightId: `etihad-${e.flight_number}-${e.flight_date}-${e.direction}`,
@@ -78,9 +80,11 @@ export default function Home() {
         flightNumber: e.flight_number.replace(/^EY/, ""),
         flightDate: e.flight_date,
         destinationCode: null,
-        statusCode: null,
+        statusCode: e.status,
         isIrregular: null,
-        departureScheduled: `${e.flight_date}T${e.scheduled_time}:00`,
+        // Add Z suffix to match Emirates convention (local time with misleading Z)
+        // AUH is also UTC+4 like Dubai, so same cutoff logic applies
+        departureScheduled: `${e.flight_date}T${e.scheduled_time}:00Z`,
         departureEstimated: null,
         arrivalScheduled: null,
         arrivalEstimated: null,
@@ -99,10 +103,32 @@ export default function Home() {
         originPlanned: "AUH",
       }));
 
-      // Skip Etihad flights when filtering by status, destination, or country
-      // (Etihad data doesn't have those fields)
-      if (!status && !destination && !country) {
-        results = [...results, ...etihadFlights];
+      // Merge Etihad flights — filter by status client-side if needed
+      let filteredEtihad = etihadFlights;
+      if (status) {
+        filteredEtihad = filteredEtihad.filter((f) => f.statusCode === status);
+      }
+      // Skip Etihad when filtering by destination or country (Etihad doesn't have those)
+      if (!destination && !country) {
+        results = [...results, ...filteredEtihad];
+      }
+
+      // Client-side origin filter (spans both airlines)
+      if (origin) {
+        results = results.filter((f) => f.originPlanned === origin);
+      }
+
+      // Re-sort the merged list when Etihad flights are included
+      if (filteredEtihad.length > 0 && !destination && !country) {
+        const dir = getMeOut ? 1 : (sortOrder === "desc" ? -1 : 1);
+        const key = getMeOut ? "departureScheduled" : sortBy;
+        results.sort((a, b) => {
+          const aVal = (a as unknown as Record<string, unknown>)[key] ?? "";
+          const bVal = (b as unknown as Record<string, unknown>)[key] ?? "";
+          if (aVal < bVal) return -dir;
+          if (aVal > bVal) return dir;
+          return 0;
+        });
       }
 
       if (getMeOut) {
@@ -122,7 +148,7 @@ export default function Home() {
     } catch (err) {
       console.error("Failed to fetch flights:", err);
     }
-  }, [date, status, destination, country, search, sortBy, sortOrder, getMeOut]);
+  }, [date, status, origin, destination, country, search, sortBy, sortOrder, getMeOut]);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -169,6 +195,28 @@ export default function Home() {
   const destinations = stats?.destinations ?? [];
   const countries = stats?.countries?.map((c) => c.country).filter(Boolean) as string[] ?? [];
 
+  // Derive available origins from stats (Emirates origins) + AUH for Etihad
+  const origins = useMemo(() => {
+    const set = new Set<string>();
+    set.add("AUH"); // Etihad
+    const byStatus = stats?.byStatus ?? [];
+    // All Emirates flights have origin data, add known origins
+    if (byStatus.length > 0) set.add("DXB");
+    return [...set].sort();
+  }, [stats]);
+
+  // Derive status codes that actually exist in data (Emirates from stats + Etihad from flights)
+  const activeStatuses = useMemo(() => {
+    const codes = new Set<string>();
+    for (const s of stats?.byStatus ?? []) {
+      if (s.statusCode) codes.add(s.statusCode);
+    }
+    for (const f of flights) {
+      if (f.statusCode) codes.add(f.statusCode);
+    }
+    return codes;
+  }, [stats, flights]);
+
   return (
     <div className="min-h-screen">
       <NavBar />
@@ -187,13 +235,17 @@ export default function Home() {
             onDateChange={exitGetMeOut(setDate)}
             status={status}
             onStatusChange={exitGetMeOut(setStatus)}
+            origin={origin}
+            onOriginChange={exitGetMeOut(setOrigin)}
             destination={destination}
             onDestinationChange={exitGetMeOut(setDestination)}
             country={country}
             onCountryChange={exitGetMeOut(setCountry)}
             destinations={destinations}
+            origins={origins}
             countries={countries}
             dates={[today, tomorrow]}
+            activeStatuses={activeStatuses}
           />
           <div className="w-full sm:w-64">
             <SearchBar value={search} onChange={exitGetMeOut(setSearch)} />
@@ -228,6 +280,7 @@ export default function Home() {
             onSort={handleSort}
             loading={loading}
             onDestinationClick={exitGetMeOut(setDestination)}
+            onOriginClick={exitGetMeOut(setOrigin)}
           />
         </section>
       </main>

@@ -7,13 +7,17 @@ interface FilterPanelProps {
   onDateChange: (v: string) => void;
   status: string;
   onStatusChange: (v: string) => void;
+  origin: string;
+  onOriginChange: (v: string) => void;
   destination: string;
   onDestinationChange: (v: string) => void;
   country: string;
   onCountryChange: (v: string) => void;
   destinations: Array<{ stationCode: string; city: string | null }>;
+  origins: string[];
   countries: string[];
   dates: string[];
+  activeStatuses?: Set<string>;
 }
 
 function DatePill({
@@ -78,10 +82,14 @@ export function FilterPanel(props: FilterPanelProps) {
 
   const statusOptions = [
     { value: "", label: "All Statuses" },
-    ...Object.entries(STATUS_LABELS).map(([code, label]) => ({
-      value: code,
-      label,
-    })),
+    ...Object.entries(STATUS_LABELS)
+      .filter(([code]) => !props.activeStatuses || props.activeStatuses.has(code))
+      .map(([code, label]) => ({ value: code, label })),
+  ];
+
+  const originOptions = [
+    { value: "", label: "All Origins" },
+    ...props.origins.sort().map((o) => ({ value: o, label: o })),
   ];
 
   const destinationOptions = [
@@ -101,7 +109,7 @@ export function FilterPanel(props: FilterPanelProps) {
   ];
 
   const hasFilters =
-    props.date || props.status || props.destination || props.country;
+    props.date || props.status || props.origin || props.destination || props.country;
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -114,6 +122,7 @@ export function FilterPanel(props: FilterPanelProps) {
 
       {/* Dropdowns */}
       <FilterSelect value={props.status} onChange={props.onStatusChange} options={statusOptions} />
+      <FilterSelect value={props.origin} onChange={props.onOriginChange} options={originOptions} />
       <FilterSelect value={props.destination} onChange={props.onDestinationChange} options={destinationOptions} />
       <FilterSelect value={props.country} onChange={props.onCountryChange} options={countryOptions} />
 
@@ -122,6 +131,7 @@ export function FilterPanel(props: FilterPanelProps) {
           onClick={() => {
             props.onDateChange("");
             props.onStatusChange("");
+            props.onOriginChange("");
             props.onDestinationChange("");
             props.onCountryChange("");
           }}

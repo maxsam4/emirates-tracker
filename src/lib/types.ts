@@ -114,6 +114,7 @@ export const STATUS_LABELS: Record<string, string> = {
   RTDR: "Returned to Stand",
   RTND: "Returned to Departure Airport",
   RERO: "Departure Airport Changed",
+  UNKNOWN: "Unknown",
 };
 
 export function getStatusLabel(code: string | null): string {

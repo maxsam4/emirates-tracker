@@ -147,7 +147,7 @@ function fetchPage(url: string): Promise<string> {
     req.on("data", (chunk: Buffer) => chunks.push(chunk));
 
     req.on("response", (headers) => {
-      const status = headers[http2.constants.HTTP2_HEADER_STATUS] as number;
+      const status = Number(headers[http2.constants.HTTP2_HEADER_STATUS]);
 
       // Handle redirects
       if (status >= 300 && status < 400 && headers["location"]) {
@@ -211,26 +211,63 @@ function upsertFlights(flights: ScheduleFlight[]) {
       direction TEXT NOT NULL,
       city_name TEXT NOT NULL,
       scheduled_time TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'PDEP',
       fetched_at TEXT NOT NULL,
       PRIMARY KEY (flight_number, flight_date, direction)
     )
   `);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_etihad_schedules_date ON etihad_schedules(flight_date)`);
 
+  // Add status column if migrating from old schema
+  try { db.exec("ALTER TABLE etihad_schedules ADD COLUMN status TEXT NOT NULL DEFAULT 'PDEP'"); } catch { /* column already exists */ }
+
   const now = new Date().toISOString();
-  const stmt = db.prepare(`
+
+  // Dates covered by this scrape
+  const scrapedDates = [...new Set(flights.map((f) => f.flightDate))];
+
+  const upsertStmt = db.prepare(`
     INSERT OR REPLACE INTO etihad_schedules
-      (flight_number, flight_date, direction, city_name, scheduled_time, fetched_at)
-    VALUES (?, ?, ?, ?, ?, ?)
+      (flight_number, flight_date, direction, city_name, scheduled_time, status, fetched_at)
+    VALUES (?, ?, ?, ?, ?, 'PDEP', ?)
   `);
 
-  const insertAll = db.transaction(() => {
+  // Mark flights on scraped dates that are no longer in the schedule as UNKNOWN
+  const markStaleStmt = db.prepare(`
+    UPDATE etihad_schedules SET status = 'UNKNOWN', fetched_at = ?
+    WHERE flight_date = ? AND direction = 'from_auh'
+      AND (flight_number || flight_date || direction) NOT IN (
+        SELECT flight_number || flight_date || direction FROM etihad_schedules WHERE 0
+      )
+  `);
+
+  const run = db.transaction(() => {
+    // Upsert all scraped flights as PDEP
     for (const f of flights) {
-      stmt.run(f.flightNumber, f.flightDate, f.direction, f.cityName, f.scheduledTime, now);
+      upsertStmt.run(f.flightNumber, f.flightDate, f.direction, f.cityName, f.scheduledTime, now);
+    }
+
+    // Build set of scraped keys for stale detection
+    const scrapedKeys = new Set(flights.map((f) => `${f.flightNumber}|${f.flightDate}|${f.direction}`));
+
+    // For each scraped date, mark any DB rows not in this scrape as UNKNOWN
+    for (const d of scrapedDates) {
+      const existing = db.prepare(
+        "SELECT flight_number, flight_date, direction FROM etihad_schedules WHERE flight_date = ? AND direction = 'from_auh'"
+      ).all(d) as Array<{ flight_number: string; flight_date: string; direction: string }>;
+
+      for (const row of existing) {
+        const key = `${row.flight_number}|${row.flight_date}|${row.direction}`;
+        if (!scrapedKeys.has(key)) {
+          db.prepare(
+            "UPDATE etihad_schedules SET status = 'UNKNOWN', fetched_at = ? WHERE flight_number = ? AND flight_date = ? AND direction = ?"
+          ).run(now, row.flight_number, row.flight_date, row.direction);
+        }
+      }
     }
   });
 
-  insertAll();
+  run();
   db.close();
 }
 

@@ -21,6 +21,7 @@ interface FlightTableProps {
   onSort: (key: SortKey) => void;
   loading?: boolean;
   onDestinationClick?: (code: string) => void;
+  onOriginClick?: (code: string) => void;
 }
 
 function SortIcon({
@@ -74,10 +75,10 @@ function ColumnHeader({
   );
 }
 
-function buildGoogleFlightsUrl(originCode: string, destinationCode: string | null, departureScheduled: string | null, flightDate: string | null): string {
-  const dest = destinationCode ?? "";
+function buildGoogleFlightsUrl(originCode: string, destinationCode: string | null, cityName: string | null, departureScheduled: string | null, flightDate: string | null): string {
+  const dest = destinationCode ?? cityName ?? "";
   const date = (departureScheduled?.slice(0, 10)) ?? flightDate ?? "";
-  return `https://www.google.com/travel/flights?q=flights+from+${originCode}+to+${dest}+on+${date}+one+way`;
+  return `https://www.google.com/travel/flights?q=flights+from+${originCode}+to+${encodeURIComponent(dest)}+on+${date}+one+way`;
 }
 
 /** Format the departure date from the timestamp (already Dubai local time).
@@ -107,7 +108,7 @@ function formatRelativeTime(iso: string | null): string {
   return `${Math.floor(seconds / 86400)}d ago`;
 }
 
-function FlightRow({ flight, onDestinationClick }: { flight: Flight; onDestinationClick?: (code: string) => void }) {
+function FlightRow({ flight, onDestinationClick, onOriginClick }: { flight: Flight; onDestinationClick?: (code: string) => void; onOriginClick?: (code: string) => void }) {
   const num = flight.flightNumber?.replace(/^0+/, "") || flight.flightNumber;
   const flightDisplay = flight.airlineDesignator
     ? `${flight.airlineDesignator} ${num}`
@@ -132,8 +133,15 @@ function FlightRow({ flight, onDestinationClick }: { flight: Flight; onDestinati
           </Link>
         )}
       </td>
-      <td className="px-5 py-4 text-[14px] text-text-secondary">
-        {flight.originPlanned ?? "\u2014"}
+      <td className="px-5 py-4 text-[14px]">
+        {flight.originPlanned ? (
+          <button
+            onClick={() => onOriginClick?.(flight.originPlanned!)}
+            className="text-text-secondary hover:text-amber cursor-pointer transition-colors"
+          >
+            {flight.originPlanned}
+          </button>
+        ) : "\u2014"}
       </td>
       <td className="px-5 py-4">
         <div className="flex flex-col gap-0.5">
@@ -168,7 +176,7 @@ function FlightRow({ flight, onDestinationClick }: { flight: Flight; onDestinati
       </td>
       <td className="px-5 py-4 text-center">
         <a
-          href={buildGoogleFlightsUrl(flight.originPlanned ?? flight.originActual ?? "DXB", flight.destinationCode, flight.departureScheduled, flight.flightDate)}
+          href={buildGoogleFlightsUrl(flight.originPlanned ?? flight.originActual ?? "DXB", flight.destinationCode, flight.city, flight.departureScheduled, flight.flightDate)}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 text-[13px] text-text-muted hover:text-amber transition-colors"
@@ -194,6 +202,7 @@ export function FlightTable({
   onSort,
   loading,
   onDestinationClick,
+  onOriginClick,
 }: FlightTableProps) {
   if (loading) {
     return (
@@ -302,7 +311,7 @@ export function FlightTable({
         </thead>
         <tbody>
           {flights.map((flight) => (
-            <FlightRow key={flight.flightId} flight={flight} onDestinationClick={onDestinationClick} />
+            <FlightRow key={flight.flightId} flight={flight} onDestinationClick={onDestinationClick} onOriginClick={onOriginClick} />
           ))}
         </tbody>
       </table>

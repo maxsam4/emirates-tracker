@@ -10,6 +10,7 @@ interface EtihadRow {
   direction: string;
   city_name: string;
   scheduled_time: string;
+  status: string;
   fetched_at: string;
 }
 
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
   const db = getDb();
 
   const allRows = db.all<EtihadRow>(
-    sql`SELECT flight_number, flight_date, direction, city_name, scheduled_time, fetched_at
+    sql`SELECT flight_number, flight_date, direction, city_name, scheduled_time, status, fetched_at
         FROM etihad_schedules ORDER BY flight_date ASC, scheduled_time ASC`
   );
 

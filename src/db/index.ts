@@ -147,6 +147,7 @@ function initializeDb() {
       direction TEXT NOT NULL,
       city_name TEXT NOT NULL,
       scheduled_time TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'PDEP',
       fetched_at TEXT NOT NULL,
       PRIMARY KEY (flight_number, flight_date, direction)
     )
