@@ -12,6 +12,7 @@ npx tsx scripts/manage-destinations.ts --ignore LHR   # Ignore a destination
 npx tsx scripts/manage-destinations.ts --list-ignored  # Show ignored
 npx tsx scripts/fetch-etihad-schedule.ts           # Fetch Etihad schedule (run via cron)
 npx tsx scripts/fetch-etihad-schedule.test.ts      # Run Etihad parser tests
+npx tsx scripts/cleanup-old-flights.ts             # Delete flights older than 7 days (cron daily 3am)
 ```
 
 ## Architecture
@@ -38,6 +39,7 @@ scripts/
   manage-destinations.ts        — CLI for destination management
   fetch-etihad-schedule.ts      — Etihad schedule scraper (cron every 5min)
   fetch-etihad-schedule.test.ts — Parser unit tests
+  cleanup-old-flights.ts        — Deletes flight data older than 7 days (cron daily 3am)
 ```
 
 ## Key Patterns
