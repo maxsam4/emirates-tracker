@@ -74,6 +74,12 @@ function ColumnHeader({
   );
 }
 
+function buildGoogleFlightsUrl(destinationCode: string | null, departureScheduled: string | null, flightDate: string | null): string {
+  const dest = destinationCode ?? "";
+  const date = (departureScheduled?.slice(0, 10)) ?? flightDate ?? "";
+  return `https://www.google.com/travel/flights?q=flights+from+DXB+to+${dest}+on+${date}+one+way`;
+}
+
 /** Format the departure date from the timestamp (already Dubai local time).
  *  Falls back to flightDate if no departure timestamp available. */
 function formatDepartureDate(departureIso: string | null, flightDate: string | null): string {
@@ -153,6 +159,20 @@ function FlightRow({ flight, onDestinationClick }: { flight: Flight; onDestinati
       <td className="px-5 py-4 font-[family-name:var(--font-mono)] text-[15px] font-medium tabular-nums text-text-secondary">
         {formatLocalTime(flight.arrivalScheduled)}
       </td>
+      <td className="px-5 py-4 text-center">
+        <a
+          href={buildGoogleFlightsUrl(flight.destinationCode, flight.departureScheduled, flight.flightDate)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-[13px] text-text-muted hover:text-amber transition-colors"
+          title="Search on Google Flights"
+        >
+          Book Ticket
+          <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M11 3h6v6M17 3L9 11M8 5H5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </a>
+      </td>
       <td className="hidden px-5 py-4 text-[13px] text-text-muted lg:table-cell">
         {formatRelativeTime(flight.fetchedAt)}
       </td>
@@ -183,6 +203,7 @@ export function FlightTable({
               <div className="h-5 w-24 animate-pulse rounded bg-surface-3" />
               <div className="h-5 w-16 animate-pulse rounded bg-surface-3" />
               <div className="h-5 w-16 animate-pulse rounded bg-surface-3" />
+              <div className="h-5 w-8 animate-pulse rounded bg-surface-3" />
             </div>
           ))}
         </div>
@@ -255,6 +276,9 @@ export function FlightTable({
               onSort={onSort}
               className="w-[110px]"
             />
+            <th className="w-[60px] px-5 py-3.5 text-center text-[13px] font-semibold uppercase tracking-[0.06em] text-text-muted">
+              Book
+            </th>
             <ColumnHeader
               label="Updated"
               sortKey="fetchedAt"

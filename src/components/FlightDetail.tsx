@@ -73,6 +73,17 @@ export function FlightDetail({ flight }: { flight: Flight }) {
           {flight.country && (
             <p className="text-xs text-text-muted">{flight.country}</p>
           )}
+          <a
+            href={`https://www.google.com/travel/flights?q=flights+from+DXB+to+${flight.destinationCode ?? ""}+on+${(flight.departureScheduled?.slice(0, 10)) ?? flight.flightDate ?? ""}+one+way`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-flex items-center gap-1 text-xs text-text-muted hover:text-amber transition-colors"
+          >
+            Check availability
+            <svg className="h-3 w-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M11 3h6v6M17 3L9 11M8 5H5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </a>
         </div>
 
         {/* Duration */}
