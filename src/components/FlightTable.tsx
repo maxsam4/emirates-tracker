@@ -121,12 +121,19 @@ function FlightRow({ flight, onDestinationClick }: { flight: Flight; onDestinati
   return (
     <tr className="border-b border-border-subtle transition-colors hover:bg-surface-2/40">
       <td className="px-5 py-4 font-[family-name:var(--font-mono)] text-[15px] font-semibold text-amber tracking-wide">
-        <Link
-          href={`/flight/${encodeURIComponent(flight.flightId)}`}
-          className="hover:underline"
-        >
-          {flightDisplay}
-        </Link>
+        {flight.flightId.startsWith("etihad-") ? (
+          <span>{flightDisplay}</span>
+        ) : (
+          <Link
+            href={`/flight/${encodeURIComponent(flight.flightId)}`}
+            className="hover:underline"
+          >
+            {flightDisplay}
+          </Link>
+        )}
+      </td>
+      <td className="px-5 py-4 text-[14px] text-text-secondary">
+        {flight.originPlanned ?? "\u2014"}
       </td>
       <td className="px-5 py-4">
         <div className="flex flex-col gap-0.5">
@@ -198,6 +205,7 @@ export function FlightTable({
               className="flex gap-6 border-b border-border-subtle px-5 py-5"
             >
               <div className="h-5 w-20 animate-pulse rounded bg-surface-3" />
+              <div className="h-5 w-12 animate-pulse rounded bg-surface-3" />
               <div className="h-5 w-36 animate-pulse rounded bg-surface-3" />
               <div className="h-5 w-16 animate-pulse rounded bg-surface-3" />
               <div className="h-5 w-24 animate-pulse rounded bg-surface-3" />
@@ -237,6 +245,9 @@ export function FlightTable({
               onSort={onSort}
               className="w-[110px]"
             />
+            <th className="w-[80px] px-5 py-3.5 text-left text-[13px] font-semibold uppercase tracking-[0.06em] text-text-muted">
+              Origin
+            </th>
             <ColumnHeader
               label="Destination"
               sortKey="destination"

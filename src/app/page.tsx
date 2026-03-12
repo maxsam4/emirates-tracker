@@ -48,9 +48,62 @@ export default function Home() {
     }
 
     try {
-      const res = await fetch(`/api/flights?${params}`);
-      const data = await res.json();
-      let results: Flight[] = data.flights ?? [];
+      // Fetch Emirates and Etihad in parallel
+      const etihadParams = new URLSearchParams();
+      etihadParams.set("direction", "from_auh");
+      if (date) etihadParams.set("date", date);
+      if (search) etihadParams.set("search", search);
+
+      const [emiratesRes, etihadRes] = await Promise.all([
+        fetch(`/api/flights?${params}`),
+        fetch(`/api/etihad?${etihadParams}`),
+      ]);
+
+      const emiratesData = await emiratesRes.json();
+      const etihadData = await etihadRes.json();
+
+      let results: Flight[] = emiratesData.flights ?? [];
+
+      // Map Etihad schedule data to Flight shape
+      const etihadFlights: Flight[] = (etihadData.flights ?? []).map((e: {
+        flight_number: string;
+        flight_date: string;
+        direction: string;
+        city_name: string;
+        scheduled_time: string;
+        fetched_at: string;
+      }) => ({
+        flightId: `etihad-${e.flight_number}-${e.flight_date}-${e.direction}`,
+        airlineDesignator: "EY",
+        flightNumber: e.flight_number.replace(/^EY/, ""),
+        flightDate: e.flight_date,
+        destinationCode: null,
+        statusCode: null,
+        isIrregular: null,
+        departureScheduled: `${e.flight_date}T${e.scheduled_time}:00`,
+        departureEstimated: null,
+        arrivalScheduled: null,
+        arrivalEstimated: null,
+        departureTerminal: null,
+        arrivalTerminal: null,
+        flightPosition: null,
+        totalTravelDuration: null,
+        travelDurationLeft: null,
+        lastUpdatedApi: null,
+        fetchedAt: e.fetched_at,
+        city: e.city_name,
+        country: null,
+        region: null,
+        stationLongName: null,
+        timezoneTitle: null,
+        originPlanned: "AUH",
+      }));
+
+      // Skip Etihad flights when filtering by status, destination, or country
+      // (Etihad data doesn't have those fields)
+      if (!status && !destination && !country) {
+        results = [...results, ...etihadFlights];
+      }
 
       if (getMeOut) {
         // departureScheduled is Dubai local time with a misleading 'Z' suffix.

@@ -139,6 +139,22 @@ function initializeDb() {
   db.run(/* sql */ `
     CREATE INDEX IF NOT EXISTS idx_flight_statuses_dest ON flight_statuses(destination_code)
   `);
+
+  db.run(/* sql */ `
+    CREATE TABLE IF NOT EXISTS etihad_schedules (
+      flight_number TEXT NOT NULL,
+      flight_date TEXT NOT NULL,
+      direction TEXT NOT NULL,
+      city_name TEXT NOT NULL,
+      scheduled_time TEXT NOT NULL,
+      fetched_at TEXT NOT NULL,
+      PRIMARY KEY (flight_number, flight_date, direction)
+    )
+  `);
+
+  db.run(/* sql */ `
+    CREATE INDEX IF NOT EXISTS idx_etihad_schedules_date ON etihad_schedules(flight_date)
+  `);
 }
 
 export type Db = ReturnType<typeof getDb>;

@@ -19,7 +19,7 @@ export function NavBar() {
             href="/"
             className="font-[family-name:var(--font-display)] text-[32px] tracking-tight text-text-primary hover:opacity-80 transition-opacity"
           >
-            Emirates <span className="text-amber">DXB</span>
+            Fly <span className="text-amber">DXB</span> + <span className="text-amber">AUH</span>
           </Link>
 
           <nav className="flex items-center gap-6">

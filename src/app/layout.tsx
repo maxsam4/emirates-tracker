@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Emirates Flight Status — DXB Departures",
+  title: "Fly DXB — Emirates and Etihad Flight Status",
   description:
     "Live flight status tracker for all Emirates departures from Dubai International Airport",
 };

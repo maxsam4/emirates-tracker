@@ -98,6 +98,7 @@ export async function GET(req: NextRequest) {
       region: destinations.region,
       stationLongName: destinations.stationLongName,
       timezoneTitle: destinations.timezoneTitle,
+      originPlanned: flightStatuses.originPlanned,
     })
     .from(flightStatuses)
     .leftJoin(
